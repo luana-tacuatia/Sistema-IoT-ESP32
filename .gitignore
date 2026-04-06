@@ -1,0 +1,40 @@
+# =========================
+# PlatformIO (firmware)
+# =========================
+firmware/.pio/
+firmware/.vscode/
+firmware/.idea/
+
+# Arquivos locais / sensíveis
+firmware/platformio_override.ini
+firmware/include/secrets.h
+
+# =========================
+# Python (backend)
+# =========================
+backend/venv/
+venv/
+.env/
+
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# =========================
+# Logs
+# =========================
+*.log
+
+# =========================
+# Sistema operacional
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Arquivos temporários
+# =========================
+*.tmp
+*.bak
+*.swp
