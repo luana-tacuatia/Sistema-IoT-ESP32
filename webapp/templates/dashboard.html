@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Dashboard IoT para monitoramento ambiental de plantas com ESP32"
+    />
+    <title>Plant Monitoring Dashboard</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+
+  <body>
+    <div class="container">
+      <header>
+        <h1>Monitoramento de Plantas</h1>
+        <p>Sistema IoT para monitoramento ambiental</p>
+      </header>
+
+      <section class="cards">
+        <div class="card">
+          <h2>🌡 Temperatura</h2>
+          <p id="temperatura">-- °C</p>
+        </div>
+        <div class="card">
+          <h2>💧 Umidade do Ar</h2>
+          <p id="umidadeAr">-- %</p>
+        </div>
+        <div class="card">
+          <h2>🌱 Umidade do Solo</h2>
+          <p id="umidadeSolo">-- %</p>
+        </div>
+      </section>
+
+      <section class="timestamp">
+        <p id="ultimaAtualizacao">Última atualização: --</p>
+      </section>
+
+      <section class="filtros">
+        <button data-periodo="30min" class="ativo">30 min</button>
+        <button data-periodo="1h">1 hora</button>
+        <button data-periodo="24h">24 horas</button>
+        <button data-periodo="1mes">1 mês</button>
+        <button data-periodo="6m">6 meses</button>
+        <button data-periodo="12m">12 meses</button>
+      </section>
+
+      <section class="grafico-container">
+        <p id="mensagemSemDados" class="mensagem-sem-dados">
+          Ainda não há dados suficientes para este período.
+        </p>
+        <div id="containerGrafico">
+          <canvas id="grafico"></canvas>
+        </div>
+      </section>
+
+      <section class="estatisticas">
+        <div class="stat-card">
+          <h3>Média Temperatura</h3>
+          <p id="mediaTemp">--</p>
+        </div>
+        <div class="stat-card">
+          <h3>Média Umidade Ar</h3>
+          <p id="mediaHum">--</p>
+        </div>
+        <div class="stat-card">
+          <h3>Média Umidade Solo</h3>
+          <p id="mediaSoil">--</p>
+        </div>
+      </section>
+    </div>
+
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+  </body>
+</html>

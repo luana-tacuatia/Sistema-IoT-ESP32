@@ -1,0 +1,213 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&display=swap');
+
+:root {
+  --verde-escuro: #1b5e20;
+  --verde-medio: #2e7d32;
+  --verde-claro: #a5d6a7;
+  --verde-fundo: #f1f8f2;
+  --laranja: #e05c2a;
+  --azul: #1565c0;
+  --texto: #1a2e1b;
+  --texto-suave: #5a7060;
+  --branco: #ffffff;
+  --sombra: 0 2px 14px rgba(0, 0, 0, 0.07);
+  --raio: 14px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--verde-fundo);
+  color: var(--texto);
+  min-height: 100vh;
+}
+
+.container {
+  max-width: 1100px;
+  margin: auto;
+  padding: 40px 24px;
+}
+
+/* ── Header ────────────────────────────────── */
+header {
+  text-align: center;
+  margin-bottom: 44px;
+}
+
+header h1 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 2.4rem;
+  color: var(--verde-escuro);
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
+}
+
+header p {
+  color: var(--texto-suave);
+  font-size: 1rem;
+}
+
+/* ── Cards de leitura ──────────────────────── */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 18px;
+  margin-bottom: 16px;
+}
+
+.card {
+  background: var(--branco);
+  padding: 28px 24px;
+  border-radius: var(--raio);
+  box-shadow: var(--sombra);
+  text-align: center;
+  border-top: 4px solid var(--verde-claro);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.1);
+}
+
+.card h2 {
+  margin-bottom: 14px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--texto-suave);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.card p {
+  font-family: 'DM Serif Display', serif;
+  font-size: 2.4rem;
+  color: var(--verde-escuro);
+}
+
+/* ── Timestamp ─────────────────────────────── */
+.timestamp {
+  text-align: center;
+  margin-bottom: 22px;
+  color: var(--texto-suave);
+  font-size: 0.875rem;
+}
+
+/* ── Filtros de período ────────────────────── */
+.filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 22px;
+}
+
+.filtros button {
+  padding: 8px 18px;
+  border: 2px solid var(--verde-medio);
+  border-radius: 999px;
+  cursor: pointer;
+  background: transparent;
+  color: var(--verde-medio);
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition:
+    background 0.18s ease,
+    color 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.filtros button:hover:not(:disabled) {
+  background: var(--verde-claro);
+  color: var(--verde-escuro);
+}
+
+.filtros button.ativo {
+  background: var(--verde-medio);
+  color: var(--branco);
+  border-color: var(--verde-medio);
+}
+
+/* Botão desabilitado — sem dados suficientes */
+.filtros button:disabled {
+  border-color: #ccc;
+  color: #bbb;
+  background: transparent;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* ── Gráfico ───────────────────────────────── */
+.grafico-container {
+  background: var(--branco);
+  padding: 24px;
+  border-radius: var(--raio);
+  box-shadow: var(--sombra);
+  margin-bottom: 22px;
+}
+
+/* ── Mensagem sem dados ────────────────────── */
+.mensagem-sem-dados {
+  display: none;
+  text-align: center;
+  padding: 16px;
+  background: #fff8e1;
+  color: #795548;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 12px;
+}
+
+/* ── Cards de estatísticas ─────────────────── */
+.estatisticas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 18px;
+}
+
+.stat-card {
+  background: var(--branco);
+  padding: 22px 20px;
+  border-radius: var(--raio);
+  text-align: center;
+  box-shadow: var(--sombra);
+  border-left: 4px solid var(--verde-medio);
+}
+
+.stat-card h3 {
+  margin-bottom: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--texto-suave);
+}
+
+.stat-card p {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.8rem;
+  color: var(--verde-escuro);
+}
+
+/* ── Responsivo ────────────────────────────── */
+@media (max-width: 600px) {
+  header h1 {
+    font-size: 1.8rem;
+  }
+  .card p {
+    font-size: 1.9rem;
+  }
+  .filtros button {
+    padding: 7px 14px;
+    font-size: 0.8rem;
+  }
+}
