@@ -10,6 +10,85 @@ const PERIODOS = {
   '12m': { modoTimestamp: 'mes' },
 }
 
+// ── Thresholds — manter sincronizado com alertas.py ─────────────────────────
+
+const LIMITES = {
+  temperatura: {
+    min: 15.0,
+    max: 35.0,
+    label: 'Temperatura',
+    unidade: '°C',
+    icone: '🌡',
+  },
+  umidade_ar: {
+    min: 30.0,
+    max: 90.0,
+    label: 'Umidade do Ar',
+    unidade: '%',
+    icone: '💧',
+  },
+  umidade_solo: {
+    min: 20.0,
+    max: 80.0,
+    label: 'Umidade do Solo',
+    unidade: '%',
+    icone: '🌱',
+  },
+}
+
+// ── Alerta no dashboard ─────────────────────────────────────────────────────
+
+function avaliarAlertas(leitura) {
+  const violacoes = []
+  for (const [campo, cfg] of Object.entries(LIMITES)) {
+    const valor = leitura[campo]
+    if (valor === undefined || valor === null) continue
+    if (valor < cfg.min) {
+      violacoes.push({
+        ...cfg,
+        valor,
+        tipo: 'baixo',
+        limite: cfg.min,
+        sufixo: `abaixo do mínimo (${cfg.min.toFixed(1)} ${cfg.unidade})`,
+      })
+    } else if (valor > cfg.max) {
+      violacoes.push({
+        ...cfg,
+        valor,
+        tipo: 'alto',
+        limite: cfg.max,
+        sufixo: `acima do máximo (${cfg.max.toFixed(1)} ${cfg.unidade})`,
+      })
+    }
+  }
+  return violacoes
+}
+
+function atualizarBannerAlerta(leitura) {
+  const bannerAlerta = document.getElementById('bannerAlerta')
+  const bannerNormal = document.getElementById('bannerNormal')
+  const listaViolacoes = document.getElementById('listaViolacoes')
+
+  if (!bannerAlerta || !bannerNormal) return
+
+  const violacoes = avaliarAlertas(leitura)
+
+  if (violacoes.length > 0) {
+    listaViolacoes.innerHTML = violacoes
+      .map((v) => {
+        const seta = v.tipo === 'alto' ? '🔺' : '🔻'
+        const valorFmt = v.valor.toFixed(1).replace('.', ',')
+        return `<li>${v.icone} <strong>${v.label}:</strong> ${valorFmt} ${v.unidade} ${seta} ${v.sufixo}</li>`
+      })
+      .join('')
+    bannerAlerta.classList.remove('oculto')
+    bannerNormal.classList.add('oculto')
+  } else {
+    bannerAlerta.classList.add('oculto')
+    bannerNormal.classList.remove('oculto')
+  }
+}
+
 // ── Disponibilidade dos botões ──────────────────────────────────────────────
 
 async function atualizarBotoesDisponiveis() {
@@ -32,7 +111,6 @@ async function atualizarBotoesDisponiveis() {
       ? ''
       : 'Ainda não há dados suficientes para este período'
 
-    // Se o período ativo ficou desabilitado, migra para o primeiro disponível
     if (!disponivel && periodo === periodoAtual) {
       const primeiro = Object.keys(disponibilidade).find(
         (p) => disponibilidade[p],
@@ -111,6 +189,9 @@ async function carregarDados(periodo = '30min') {
     `${media(umidadeAr).toFixed(1).replace('.', ',')} %`
   document.getElementById('mediaSoil').textContent =
     `${media(umidadeSolo).toFixed(1).replace('.', ',')} %`
+
+  // Avalia alertas com base na última leitura
+  atualizarBannerAlerta(ultimo)
 
   const ctx = document.getElementById('grafico')
 
@@ -197,15 +278,15 @@ async function carregarDados(periodo = '30min') {
   chart.data.datasets[0].data = temperaturas
   chart.data.datasets[1].data = umidadeAr
   chart.data.datasets[2].data = umidadeSolo
-  chart.update('none') // sem animação no refresh automático
+  chart.update('none')
 }
 
-// ── Ciclo de atualização (sem sobreposição) ─────────────────────────────────
+// ── Ciclo de atualização (5 minutos, sem sobreposição) ──────────────────────
 
 async function cicloAtualizacao() {
   await atualizarBotoesDisponiveis()
   await carregarDados(periodoAtual)
-  setTimeout(cicloAtualizacao, 5000)
+  setTimeout(cicloAtualizacao, 5 * 60 * 1000)
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -233,8 +314,6 @@ function formatarTimestamp(timestamp, modo = 'hora') {
 
 // ── Inicialização ───────────────────────────────────────────────────────────
 
-// Desabilita todos os botões imediatamente, antes mesmo do JS consultar o backend,
-// para evitar o flash onde todos aparecem clicáveis
 document.querySelectorAll('[data-periodo]').forEach((btn) => {
   btn.disabled = true
 })

@@ -52,6 +52,74 @@ header p {
   font-size: 1rem;
 }
 
+/* ── Banners de alerta ─────────────────────── */
+.banner-alerta,
+.banner-normal {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 20px;
+  border-radius: var(--raio);
+  margin-bottom: 24px;
+  font-size: 0.925rem;
+  font-weight: 500;
+}
+
+.oculto {
+  display: none !important;
+}
+
+/* Alerta — vermelho */
+.banner-alerta {
+  background: #fff3f3;
+  border: 1.5px solid #f5c6c6;
+  color: #7f1d1d;
+}
+
+.banner-alerta-icone {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+  animation: piscar 1.1s ease-in-out infinite;
+}
+
+@keyframes piscar {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.1;
+  }
+}
+
+.banner-alerta-corpo strong {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 700;
+  color: #991b1b;
+}
+
+.banner-alerta-corpo ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.banner-alerta-corpo li {
+  font-size: 0.875rem;
+  color: #7f1d1d;
+}
+
+/* Normal — verde */
+.banner-normal {
+  background: #f0fdf4;
+  border: 1.5px solid #bbf7d0;
+  color: #14532d;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
 /* ── Cards de leitura ──────────────────────── */
 .cards {
   display: grid;
@@ -136,7 +204,6 @@ header p {
   border-color: var(--verde-medio);
 }
 
-/* Botão desabilitado — sem dados suficientes */
 .filtros button:disabled {
   border-color: #ccc;
   color: #bbb;

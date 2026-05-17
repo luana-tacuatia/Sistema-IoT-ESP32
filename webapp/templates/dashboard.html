@@ -22,6 +22,31 @@
         <p>Sistema IoT para monitoramento ambiental</p>
       </header>
 
+      <!-- Banner de alerta — visível quando há violações -->
+      <div
+        id="bannerAlerta"
+        class="banner-alerta oculto"
+        role="alert"
+        aria-live="polite"
+      >
+        <span class="banner-alerta-icone">⚠️</span>
+        <div class="banner-alerta-corpo">
+          <strong>Condições inadequadas detectadas</strong>
+          <ul id="listaViolacoes"></ul>
+        </div>
+      </div>
+
+      <!-- Banner de normalização — visível quando tudo está ok -->
+      <div
+        id="bannerNormal"
+        class="banner-normal oculto"
+        role="status"
+        aria-live="polite"
+      >
+        <span>✅</span>
+        <span>Todas as condições estão dentro dos limites normais.</span>
+      </div>
+
       <section class="cards">
         <div class="card">
           <h2>🌡 Temperatura</h2>

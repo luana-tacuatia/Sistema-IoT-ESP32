@@ -2,12 +2,15 @@ from flask import Flask, request, jsonify, render_template
 from datetime import datetime, timezone
 import sqlite3
 import os
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
+from alertas import iniciar_monitor
 
 app = Flask(__name__)
 
 DATABASE = os.path.join(os.path.dirname(__file__), 'database.db')
 
-# Períodos válidos aceitos pela API
 PERIODOS_VALIDOS = {
     '30min': '-30 minutes',
     '1h':    '-1 hour',
@@ -17,8 +20,6 @@ PERIODOS_VALIDOS = {
     '12m':   '-12 months',
 }
 
-# Fração mínima da janela que os dados precisam cobrir para o período ser habilitado.
-# Ex: 0.8 = os dados precisam começar em até 20% do início da janela.
 COBERTURA_MINIMA = 0.8
 
 
@@ -39,10 +40,12 @@ def init_db():
 
 init_db()
 
+# Inicia o monitor de alertas em background (thread daemon)
+iniciar_monitor(DATABASE)
+
 
 @app.route('/dados', methods=['POST'])
 def receber_dados():
-
     dados = request.get_json(silent=True)
     if not dados:
         return jsonify({"status": "erro", "mensagem": "Payload inválido ou Content-Type incorreto"}), 400
@@ -81,7 +84,6 @@ def receber_dados():
 
 @app.route('/api/dados')
 def api_dados():
-
     periodo = request.args.get('periodo', '30min')
     filtro  = PERIODOS_VALIDOS.get(periodo)
 
@@ -119,23 +121,12 @@ def api_dados():
 
 @app.route('/api/periodos-disponiveis')
 def periodos_disponiveis():
-    """
-    Um período é considerado disponível quando o registro mais antigo dentro
-    da janela cobre pelo menos COBERTURA_MINIMA da duração total do período.
-
-    Exemplo com '24h' e COBERTURA_MINIMA = 0.8:
-      - A janela começa em now - 24h.
-      - O registro mais antigo precisa ter timestamp <= now - 24h * 0.8 = now - 19.2h.
-      - Se o sistema tem apenas 14h de dados, o mais antigo estará em now - 14h,
-        que é mais recente que now - 19.2h → período desabilitado. ✓
-    """
     disponibilidade = {}
 
     try:
         with sqlite3.connect(DATABASE) as conn:
             cursor = conn.cursor()
             for periodo, filtro in PERIODOS_VALIDOS.items():
-                # Timestamp mais antigo dentro da janela do período
                 cursor.execute('''
                     SELECT MIN(timestamp) FROM leituras
                     WHERE datetime(timestamp) >= datetime('now', ?)
@@ -147,8 +138,6 @@ def periodos_disponiveis():
                     disponibilidade[periodo] = False
                     continue
 
-                # Calcula cobertura real: quanto da janela os dados cobrem
-                # Usa o SQLite para calcular o início esperado da janela em segundos
                 cursor.execute(
                     "SELECT (julianday('now') - julianday(?)) * 86400.0",
                     (mais_antigo,)

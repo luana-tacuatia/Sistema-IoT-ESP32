@@ -7,7 +7,6 @@ firmware/.idea/
 
 # Arquivos locais / sensíveis
 firmware/include/secrets.h
-firmware/platformio_override.ini
 
 # =========================
 # Python (webapp)
@@ -15,7 +14,8 @@ firmware/platformio_override.ini
 firmware/webapp/venv/
 webapp/venv
 venv/
-.env/
+.env
+
 
 __pycache__/
 *.pyc
@@ -42,3 +42,4 @@ Thumbs.db
 
 .vscode/
 dados.json
+database.db
