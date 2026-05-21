@@ -46,7 +46,18 @@ Responsável pela leitura dos sensores através do ESP32.
 ### Sensores utilizados
 
 - DHT11 → temperatura e umidade do ar;
-- Sensor capacitivo de umidade do solo v1.2 (integração em andamento — dados simulados durante o desenvolvimento).
+- Sensor capacitivo de umidade do solo v1.2.
+
+### Aquisição de Dados
+
+As leituras do sensor capacitivo de umidade do solo são realizadas através da porta analógica GPIO34 do ESP32 utilizando conversão ADC (Analog-to-Digital Converter).
+
+O firmware embarcado realiza:
+
+- leitura periódica dos sensores;
+- conversão analógica da umidade do solo;
+- estruturação dos dados em JSON;
+- envio automático via HTTP POST.
 
 ---
 
@@ -70,7 +81,7 @@ Backend desenvolvido em Flask responsável por:
 
 ### Períodos suportados
 
-`30min` · `1h` · `24h` · `1mes` · `6m` · `12m`
+`30min` · `1h` · `24h` · `30d` · `6m` · `12m`
 
 ---
 
@@ -78,8 +89,9 @@ Backend desenvolvido em Flask responsável por:
 
 Dashboard web desenvolvido com HTML, CSS, JavaScript e Chart.js, responsável por:
 
-- Exibir medições em tempo real (atualização a cada 5 minutos);
+- Exibir medições em tempo real;
 - Exibir gráficos históricos por período;
+- Exibir dados reais provenientes dos sensores físicos;
 - Exibir banner de alerta visual quando alguma leitura estiver fora dos limites;
 - Habilitar automaticamente os filtros de período conforme o histórico de dados cresce.
 
@@ -187,7 +199,7 @@ Instale as dependências:
 pip install -r requirements.txt
 ```
 
-Crie o arquivo `.env` a partir do template (veja a seção [Configuração de Alertas](#configuração-de-alertas)):
+Crie o arquivo `.env` a partir do template:
 
 ```bash
 cp .env.example .env
@@ -209,7 +221,7 @@ python app.py
 
 O servidor ficará disponível em:
 
-```
+```text
 http://localhost:5000
 ```
 
@@ -232,6 +244,8 @@ pio run
 pio run --target upload
 ```
 
+Após a gravação do firmware, o ESP32 pode operar de forma autônoma alimentado apenas por USB, realizando coleta contínua e envio periódico dos dados via Wi-Fi.
+
 ---
 
 # Configuração de Alertas
@@ -246,92 +260,76 @@ O sistema monitora as leituras a cada 5 minutos e envia notificações via Teleg
 | Umidade do Ar   | 30 %   | 90 %   |
 | Umidade do Solo | 20 %   | 80 %   |
 
-Para ajustar os limites, edite o dicionário `LIMITES` em `webapp/alertas.py` e o objeto `LIMITES` em `webapp/static/app.js` (usado para o banner no dashboard).
+Para ajustar os limites, edite o dicionário `LIMITES` em `webapp/alertas.py` e o objeto `LIMITES` em `webapp/static/app.js`.
 
-## Configurando o bot do Telegram
+---
 
-### 1. Criar o bot
+# Configurando o Bot do Telegram
 
-No Telegram, pesquise por `@BotFather` e inicie uma conversa. Envie o comando `/newbot` e siga as instruções para escolher nome e username. Ao final, o BotFather entregará o **token** do bot:
+## 1. Criar o bot
 
+No Telegram, pesquise por `@BotFather` e inicie uma conversa.
+
+Envie o comando:
+
+```text
+/newbot
 ```
-123456789:AAxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-```
 
-### 2. Iniciar a conversa com o bot
+Siga as instruções para escolher nome e username. Ao final, o BotFather fornecerá o token do bot.
 
-Pesquise pelo username do bot criado e clique em **Start** (ou envie qualquer mensagem). Esse passo é obrigatório — o Telegram não permite que um bot envie mensagens para quem nunca interagiu com ele.
+---
 
-### 3. Obter o chat_id
+## 2. Iniciar conversa com o bot
 
-Após enviar uma mensagem para o bot, acesse a URL abaixo no navegador substituindo pelo seu token:
+Pesquise pelo username do bot criado e clique em **Start**.
 
-```
+Esse passo é obrigatório — o Telegram não permite que um bot envie mensagens para usuários que nunca interagiram com ele.
+
+---
+
+## 3. Obter o chat_id
+
+Após enviar uma mensagem para o bot, acesse:
+
+```text
 https://api.telegram.org/bot<SEU_TOKEN>/getUpdates
 ```
 
-No JSON retornado, o `chat_id` está em:
+O `chat_id` estará presente no JSON retornado.
 
-```json
-{
-  "message": {
-    "chat": {
-      "id": 123456789
-    }
-  }
-}
-```
+---
 
-> Se o resultado vier vazio (`"result": []`), volte ao passo 2 e envie uma mensagem para o bot antes de tentar novamente.
+## 4. Preencher o arquivo `.env`
 
-### 4. Preencher o `.env`
-
-Crie o arquivo `.env` dentro da pasta `webapp/` com as credenciais obtidas:
+Crie o arquivo `.env` dentro da pasta `webapp/`:
 
 ```env
-TELEGRAM_TOKEN=123456789:AAxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-TELEGRAM_CHAT_ID=123456789
+TELEGRAM_TOKEN=SEU_TOKEN
+TELEGRAM_CHAT_ID=SEU_CHAT_ID
 ```
-
-## Testando o bot
-
-**Teste 1 — verificar conectividade** (sem precisar reiniciar o servidor):
-
-```bash
-curl -s -X POST "https://api.telegram.org/bot<SEU_TOKEN>/sendMessage" \
-  -H "Content-Type: application/json" \
-  -d '{"chat_id": "<SEU_CHAT_ID>", "text": "Teste de conexao"}'
-```
-
-Se a mensagem chegar no Telegram, o token e o chat_id estão corretos.
-
-**Teste 2 — validar o fluxo completo** (opcional):
-
-Edite temporariamente `webapp/alertas.py` para forçar uma violação e reduzir o intervalo:
-
-```python
-INTERVALO_SEGUNDOS = 10  # temporário
-
-LIMITES = {
-    'temperatura': { 'min': 100.0, 'max': 101.0, ... },
-    ...
-}
-```
-
-Reinicie o Flask e aguarde ~10 segundos. O alerta deve chegar no Telegram. Reverta os valores após o teste.
 
 ---
 
 # Dashboard
 
-O dashboard exibe em tempo real temperatura, umidade do ar e umidade do solo, e permite consulta histórica por período. Um banner de alerta aparece automaticamente no topo quando alguma leitura estiver fora dos limites, com o ícone piscando para chamar atenção. Os botões de filtro são habilitados automaticamente conforme o banco acumula histórico suficiente.
+O dashboard permite:
+
+- visualização em tempo real;
+- gráficos históricos;
+- atualização automática;
+- análise temporal por período;
+- alertas visuais;
+- monitoramento contínuo via navegador.
+
+## Períodos disponíveis
 
 | Período  | Habilita após (aprox.) |
 | -------- | ---------------------- |
 | 30 min   | ~15 min de dados       |
 | 1 hora   | ~30 min de dados       |
 | 24 horas | ~12 h de dados         |
-| 1 mês    | ~15 dias de dados      |
+| 30 dias  | ~15 dias de dados      |
 | 6 meses  | ~3 meses de dados      |
 | 12 meses | ~6 meses de dados      |
 
@@ -339,7 +337,7 @@ O dashboard exibe em tempo real temperatura, umidade do ar e umidade do solo, e 
 
 # Considerações Experimentais
 
-Durante parte do desenvolvimento, o sensor capacitivo de umidade do solo ainda não havia sido integrado fisicamente. Para validação do fluxo completo de comunicação, foram utilizados dados simulados gerados no firmware:
+Durante as etapas iniciais do desenvolvimento, o sensor capacitivo de umidade do solo ainda não havia sido integrado fisicamente. Para validação do fluxo completo de comunicação entre os módulos, foram utilizados dados simulados gerados diretamente no firmware:
 
 ```cpp
 float temp = random(20, 30);
@@ -347,13 +345,16 @@ float hum  = random(40, 80);
 float soil = random(40, 90);
 ```
 
+Posteriormente, o sensor capacitivo v1.2 foi integrado ao ESP32 utilizando leitura analógica via ADC, permitindo aquisição real dos dados de umidade do solo.
+
 Essa abordagem permitiu validar:
 
 - comunicação entre ESP32 e servidor;
 - armazenamento e consulta no banco de dados;
 - funcionamento do dashboard e dos filtros de período;
 - visualização gráfica e persistência histórica dos dados;
-- disparo e resolução de alertas via Telegram.
+- disparo e resolução de alertas via Telegram;
+- integração de sensores físicos em tempo real.
 
 ---
 
